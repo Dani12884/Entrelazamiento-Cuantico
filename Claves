@@ -1,0 +1,56 @@
+# Instalar Cirq
+!pip install --quiet cirq
+
+# Importar Cirq
+import cirq
+import numpy as np
+
+# Definir qubits
+q0 = cirq.GridQubit(0, 0)
+q1 = cirq.GridQubit(1, 0)
+
+# Crear un circuito
+circuit = cirq.Circuit(
+    cirq.H(q0),  # Aplicar la compuerta Hadamard al primer qubit
+    cirq.CNOT(q0, q1),  # Aplicar la compuerta CNOT para entrelazar
+    cirq.measure(q0, key='q0'),  # Medir el primer qubit
+    cirq.measure(q1, key='q1')   # Medir el segundo qubit
+)
+
+print("Circuito:")
+print(circuit)
+
+# Simulación
+simulator = cirq.Simulator()
+
+# Número de repeticiones para generar más bits
+repeticiones = 1000
+
+# Almacenar los resultados de las mediciones
+mediciones = []
+
+for _ in range(repeticiones):
+    result = simulator.run(circuit)
+    mediciones.append(result.data['q0'][0] * 2 + result.data['q1'][0])  # Genera un bit de clave (00=0, 01=1, 10=2, 11=3)
+
+# Convertir las mediciones en una cadena binaria para la clave
+clave_binaria = ''.join(str(bin(med)[2:].zfill(2)) for med in mediciones)
+
+# Permitir que el usuario elija cuántos números quiere en la clave
+cantidad_numeros = int(input("¿Cuántos números deseas en la clave? "))
+
+# Calcular la cantidad de bits necesarios (cada número decimal viene de 8 bits)
+longitud_clave = cantidad_numeros * 8
+
+# Extraer los bits necesarios
+clave_final_binaria = clave_binaria[:longitud_clave]
+
+# Convertir la clave binaria a decimal dividiendo en bloques de 8 bits (1 byte)
+bloques = [clave_final_binaria[i:i+8] for i in range(0, len(clave_final_binaria), 8)]
+clave_final_decimal = [int(bloque, 2) for bloque in bloques]
+
+print("\nClave generada en binario:")
+print(clave_final_binaria)
+
+print("\nClave generada en decimal:")
+print(clave_final_decimal)
